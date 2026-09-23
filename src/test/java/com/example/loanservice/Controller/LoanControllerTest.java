@@ -13,9 +13,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -23,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 public class LoanControllerTest {
     @Mock
@@ -156,4 +162,36 @@ public class LoanControllerTest {
                 .andExpect(jsonPath("$.message")
                         .value("No active loan found"));
     }
+    @Test
+    void getLoanHistory_shouldReturnLoanHistory() throws Exception {
+
+        LoanResponse loanResponse =
+                new LoanResponse(
+                        6L,
+                        11L,
+                        1000,
+                        LoanStatus.CLOSED
+                );
+
+        Page<LoanResponse> page =
+                new PageImpl<>(
+                        List.of(loanResponse),
+                        PageRequest.of(0, 10),
+                        1
+                );
+
+        when(loanService.getLoanHistory(11L, 0, 10))
+                .thenReturn(page);
+
+        mockMvc.perform(get("/api/loans/account/11")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(6))
+                .andExpect(jsonPath("$.content[0].accountId").value(11))
+                .andExpect(jsonPath("$.content[0].amount").value(1000))
+                .andExpect(jsonPath("$.content[0].status").value("CLOSED"))
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
 }

@@ -3,6 +3,7 @@ package com.example.loanservice.controller;
 import com.example.loanservice.Dto.LoanRequest;
 import com.example.loanservice.Dto.LoanResponse;
 import com.example.loanservice.service.imp.LoanService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,5 +30,13 @@ public class LoanController {
         LoanResponse response = loanService.repayLoan(accountId);
 
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/account/{accountId}")
+    public ResponseEntity<Page<LoanResponse>> getLoanHistory(
+            @PathVariable Long accountId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<LoanResponse> history = loanService.getLoanHistory(accountId, page, size);
+        return ResponseEntity.ok(history);
     }
 }

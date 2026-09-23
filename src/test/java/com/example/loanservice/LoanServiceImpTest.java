@@ -16,12 +16,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class LoanServiceImpTest {
@@ -209,6 +214,37 @@ public class LoanServiceImpTest {
                 NoActiveLoanException.class,
                 () -> loanService.repayLoan(10L)
         );
+    }
+    @Test
+    void getLoanHistory_shouldReturnLoansForAccount() {
+
+        Loan loan = new Loan(
+                6L,
+                11L,
+                1000,
+                LoanStatus.CLOSED
+        );
+
+        Page<Loan> loanPage =
+                new PageImpl<>(List.of(loan));
+
+        when(loanRepository.findByAccountIdOrderByIdDesc(
+                eq(11L),
+                any(Pageable.class)))
+                .thenReturn(loanPage);
+
+        Page<LoanResponse> result =
+                loanService.getLoanHistory(11L, 0, 10);
+
+        assertEquals(1, result.getTotalElements());
+
+        LoanResponse response =
+                result.getContent().get(0);
+
+        assertEquals(6L, response.getId());
+        assertEquals(11L, response.getAccountId());
+        assertEquals(1000, response.getAmount());
+        assertEquals(LoanStatus.CLOSED, response.getStatus());
     }
 
 }
