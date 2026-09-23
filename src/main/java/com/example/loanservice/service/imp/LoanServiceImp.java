@@ -124,4 +124,18 @@ public class LoanServiceImp implements LoanService{
                 )
         );
     }
+    @Override
+    public LoanResponse getActiveLoan(Long accountId) {
+
+        Loan loan = loanRepository
+                .findByAccountIdAndStatus(accountId, LoanStatus.ACTIVE)
+                .orElseThrow(() -> new NoActiveLoanException("No active loan found"));
+
+        return new LoanResponse(
+                loan.getId(),
+                loan.getAccountId(),
+                loan.getAmount(),
+                loan.getStatus()
+        );
+    }
 }

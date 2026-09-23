@@ -39,4 +39,13 @@ public class LoanController {
         Page<LoanResponse> history = loanService.getLoanHistory(accountId, page, size);
         return ResponseEntity.ok(history);
     }
+    @GetMapping("/account/{accountId}/active")
+    public ResponseEntity<LoanResponse> getActiveLoan(
+            @PathVariable Long accountId) {
+
+        LoanResponse response =
+                loanService.getActiveLoan(accountId);
+
+        return ResponseEntity.ok(response);
+    }
 }

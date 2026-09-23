@@ -193,5 +193,42 @@ public class LoanControllerTest {
                 .andExpect(jsonPath("$.content[0].status").value("CLOSED"))
                 .andExpect(jsonPath("$.totalElements").value(1));
     }
+    @Test
+    void getActiveLoan_shouldReturnActiveLoan() throws Exception {
 
+        LoanResponse response =
+                new LoanResponse(
+                        7L,
+                        11L,
+                        500,
+                        LoanStatus.ACTIVE
+                );
+
+        when(loanService.getActiveLoan(11L))
+                .thenReturn(response);
+
+        mockMvc.perform(get("/api/loans/account/11/active"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(7))
+                .andExpect(jsonPath("$.accountId").value(11))
+                .andExpect(jsonPath("$.amount").value(500))
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
+    void getActiveLoan_shouldReturnNotFound_whenNoActiveLoanExists() throws Exception {
+
+        when(loanService.getActiveLoan(11L))
+                .thenThrow(
+                        new NoActiveLoanException(
+                                "No active loan found"
+                        )
+                );
+
+        mockMvc.perform(get("/api/loans/account/11/active"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message")
+                        .value("No active loan found"));
+    }
 }
