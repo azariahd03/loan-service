@@ -11,4 +11,6 @@ public interface LoanService {
     LoanResponse repayLoan (Long accountId);
 
     Page<LoanResponse> getLoanHistory(Long accountId, int page, int size);
+
+    LoanResponse getActiveLoan(Long accountId);
 }

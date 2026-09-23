@@ -246,5 +246,41 @@ public class LoanServiceImpTest {
         assertEquals(1000, response.getAmount());
         assertEquals(LoanStatus.CLOSED, response.getStatus());
     }
+    @Test
+    void getActiveLoan_shouldReturnActiveLoan() {
+
+        Loan loan = new Loan(
+                7L,
+                11L,
+                500,
+                LoanStatus.ACTIVE
+        );
+
+        when(loanRepository.findByAccountIdAndStatus(
+                11L,
+                LoanStatus.ACTIVE))
+                .thenReturn(Optional.of(loan));
+
+        LoanResponse result =
+                loanService.getActiveLoan(11L);
+
+        assertEquals(7L, result.getId());
+        assertEquals(11L, result.getAccountId());
+        assertEquals(500, result.getAmount());
+        assertEquals(LoanStatus.ACTIVE, result.getStatus());
+    }
+    @Test
+    void getActiveLoan_shouldThrowException_whenNoActiveLoanExists() {
+
+        when(loanRepository.findByAccountIdAndStatus(
+                11L,
+                LoanStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                NoActiveLoanException.class,
+                () -> loanService.getActiveLoan(11L)
+        );
+    }
 
 }
