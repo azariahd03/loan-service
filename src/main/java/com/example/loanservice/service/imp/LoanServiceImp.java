@@ -9,6 +9,9 @@ import com.example.loanservice.entity.Loan;
 import com.example.loanservice.entity.LoanStatus;
 import com.example.loanservice.repository.LoanRepository;
 import feign.FeignException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,6 +107,21 @@ public class LoanServiceImp implements LoanService{
                 savedLoan.getAccountId(),
                 savedLoan.getAmount(),
                 savedLoan.getStatus()
+        );
+    }
+    @Override
+    public Page<LoanResponse> getLoanHistory(Long accountId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Loan> loans = loanRepository.findByAccountIdOrderByIdDesc(accountId, pageable);
+
+        return loans.map(loan -> new LoanResponse(
+                        loan.getId(),
+                        loan.getAccountId(),
+                        loan.getAmount(),
+                        loan.getStatus()
+                )
         );
     }
 }
