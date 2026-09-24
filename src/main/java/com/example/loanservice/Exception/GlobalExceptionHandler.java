@@ -63,4 +63,14 @@ public class GlobalExceptionHandler {
                         "message", ex.getMessage()
                 ));
     }
+    @ExceptionHandler(AccountServiceUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleAccountServiceUnavailable(
+            AccountServiceUnavailableException ex) {
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of(
+                        "status", 503,
+                        "message", ex.getMessage()
+                ));
+    }
 }

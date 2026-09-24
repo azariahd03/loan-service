@@ -1,17 +1,15 @@
-package com.example.loanservice;
+package com.example.loanservice.Service.imp;
 
 import com.example.loanservice.Client.AccountClient;
 import com.example.loanservice.Dto.AccountResponse;
 import com.example.loanservice.Dto.LoanRequest;
 import com.example.loanservice.Dto.LoanResponse;
-import com.example.loanservice.Exception.ActiveLoanExistsException;
-import com.example.loanservice.Exception.InsufficientBalanceException;
-import com.example.loanservice.Exception.InvalidLoanAmountException;
-import com.example.loanservice.Exception.NoActiveLoanException;
+import com.example.loanservice.Exception.*;
 import com.example.loanservice.entity.Loan;
 import com.example.loanservice.entity.LoanStatus;
 import com.example.loanservice.repository.LoanRepository;
 import com.example.loanservice.service.imp.LoanServiceImp;
+import feign.RetryableException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -27,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LoanServiceImpTest {
@@ -280,6 +279,22 @@ public class LoanServiceImpTest {
         assertThrows(
                 NoActiveLoanException.class,
                 () -> loanService.getActiveLoan(11L)
+        );
+    }
+    @Test
+    void createLoan_shouldThrowException_whenAccountServiceIsUnavailable() {
+
+        LoanRequest loanRequest = new LoanRequest(99L, 500);
+
+        RetryableException retryableException =
+                mock(RetryableException.class);
+
+        when(accountClient.getAccountById(99L))
+                .thenThrow(retryableException);
+
+        assertThrows(
+                AccountServiceUnavailableException.class,
+                () -> loanService.createLoan(loanRequest)
         );
     }
 

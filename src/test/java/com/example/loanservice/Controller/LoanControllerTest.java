@@ -2,10 +2,7 @@ package com.example.loanservice.Controller;
 
 import com.example.loanservice.Dto.LoanRequest;
 import com.example.loanservice.Dto.LoanResponse;
-import com.example.loanservice.Exception.ActiveLoanExistsException;
-import com.example.loanservice.Exception.GlobalExceptionHandler;
-import com.example.loanservice.Exception.InvalidLoanAmountException;
-import com.example.loanservice.Exception.NoActiveLoanException;
+import com.example.loanservice.Exception.*;
 import com.example.loanservice.controller.LoanController;
 import com.example.loanservice.entity.LoanStatus;
 import com.example.loanservice.service.imp.LoanService;
@@ -230,5 +227,29 @@ public class LoanControllerTest {
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message")
                         .value("No active loan found"));
+    }
+    @Test
+    void createLoan_shouldReturnServiceUnavailable_whenAccountServiceIsDown()
+            throws Exception {
+
+        when(loanService.createLoan(any(LoanRequest.class)))
+                .thenThrow(
+                        new AccountServiceUnavailableException(
+                                "Account service is currently unavailable"
+                        )
+                );
+
+        mockMvc.perform(post("/api/loans")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "accountId": 99,
+                              "amount": 500
+                            }
+                            """))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.status").value(503))
+                .andExpect(jsonPath("$.message")
+                        .value("Account service is currently unavailable"));
     }
 }

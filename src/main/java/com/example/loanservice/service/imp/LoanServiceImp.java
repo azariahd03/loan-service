@@ -9,6 +9,7 @@ import com.example.loanservice.entity.Loan;
 import com.example.loanservice.entity.LoanStatus;
 import com.example.loanservice.repository.LoanRepository;
 import feign.FeignException;
+import feign.RetryableException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,15 +39,17 @@ public class LoanServiceImp implements LoanService{
             throw new InvalidLoanAmountException("Loan amount must be greater than zero");
         }
         AccountResponse account;
-
         try {
             account = accountClient.getAccountById(
                     loanRequest.getAccountId()
             );
         } catch (FeignException.NotFound ex) {
-
             throw new AccountNotFoundException(
                     "Account doesn't exist"
+            );
+        } catch (RetryableException ex) {
+            throw new AccountServiceUnavailableException(
+                    "Account service is currently unavailable"
             );
         }
 
